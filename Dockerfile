@@ -9,6 +9,11 @@ ENV TZ=Europe/Ljubljana
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
     dpkg --add-architecture i386 && \
+    echo "Types: deb" >> /etc/apt/sources.list.d/ubuntu.sources && \
+    echo "URIs: http://old-releases.ubuntu.com/ubuntu/" >> /etc/apt/sources.list.d/ubuntu.sources && \
+    echo "Suites: lunar" >> /etc/apt/sources.list.d/ubuntu.sources && \
+    echo "Components: universe" >> /etc/apt/sources.list.d/ubuntu.sources && \
+    echo "Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg" >> /etc/apt/sources.list.d/ubuntu.sources && \
     apt -y update && \
     apt -y upgrade && \
     apt -y install sudo locales iproute2 gawk python3 build-essential gcc git make \
@@ -18,9 +23,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
         python3-pexpect xz-utils debianutils iputils-ping python3-git python3-jinja2 \
         libegl1-mesa-dev libsdl1.2-dev rsync bc zlib1g:i386 expect xxd curl u-boot-tools pylint \
         libsodium-dev fakeroot e2fsprogs dosfstools parted mtools lsb-release libtinfo5 openssh-client openssh-server \
-        nano psmisc curl unzip zip && \
+        nano psmisc curl unzip zip dnsutils && \
     locale-gen en_US.UTF-8 && \
     ln -sf /bin/bash /bin/sh && \
+    userdel -fr ubuntu && \
     useradd -m -s /bin/bash user
 # Install tini for signal processing and zombie killing
 RUN set -eux; \
@@ -47,8 +53,7 @@ RUN --mount=type=bind,src=./resources,target=/tmp/resources \
     sudo -u user -i "${TMP_DIR}/accept-eula" "${TMP_DIR}/$PETALINUX_INSTALLER_NAME" "$INST_DIR" && \
     chown root:root -R "$INST_DIR" && \
     cd && \
-    sudo -u user rm -rf "$TMP_DIR" && \
-    sudo -u user rm /home/user/petalinux_installation_log
+    sudo -u user rm -rf "$TMP_DIR"
 RUN echo "PasswordAuthentication no" >> /etc/ssh/sshd_config && \
     echo "PubkeyAuthentication yes" >> etc/ssh/sshd_config && \
     echo "StrictModes no" >> etc/ssh/sshd_config && \
